@@ -1,0 +1,11 @@
+{
+  "summary": "The previously added web scraping code is isolated to scrape_images.py. No imports, references, or README mentions require cleanup elsewhere. This response format only supports writing file contents, not deleting files, so there are no replacement file contents to provide; the needed repo change is to remove scrape_images.py.",
+  "files_to_write": [],
+  "test_commands": [
+    "python -m compileall ."
+  ],
+  "notes": [
+    "Delete scrape_images.py from the repository.",
+    "No other files reference scrape_images.py, so no additional cleanup is required."
+  ]
+}

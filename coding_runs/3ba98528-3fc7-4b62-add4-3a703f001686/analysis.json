@@ -1,0 +1,12 @@
+{
+  "summary": "The repo is tiny and the likely target is `scrape_images.py`. To safely remove it and clean up any related references, read the script itself to confirm it is the web scraping file, and read `README.md` to check for usage/documentation references that should be updated or removed.",
+  "files_to_read": [
+    "scrape_images.py",
+    "README.md"
+  ],
+  "test_commands": [
+    "python -m compileall ."
+  ],
+  "needs_clarification": false,
+  "clarification_question": null
+}

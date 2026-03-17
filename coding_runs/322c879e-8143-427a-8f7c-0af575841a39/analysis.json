@@ -1,0 +1,9 @@
+{
+  "summary": "Only the README needs to be read to add the requested text safely.",
+  "files_to_read": [
+    "README.md"
+  ],
+  "test_commands": [],
+  "needs_clarification": false,
+  "clarification_question": null
+}

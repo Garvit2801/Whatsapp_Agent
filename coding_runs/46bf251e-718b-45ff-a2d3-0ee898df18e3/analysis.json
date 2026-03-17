@@ -1,0 +1,9 @@
+{
+  "summary": "Add a single short line to the repository README noting it was updated by the WhatsApp coding agent, then report the change made.",
+  "files_to_read": [
+    "README.md"
+  ],
+  "test_commands": [],
+  "needs_clarification": true,
+  "clarification_question": "The repo tree appears empty, so I can\u2019t safely identify the README file to edit. Can you provide the repo tree or confirm the README path (for example, README.md)?"
+}

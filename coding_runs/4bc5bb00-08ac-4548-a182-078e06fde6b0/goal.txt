@@ -1,0 +1,1 @@
+Write a Python code file for web scraping images.

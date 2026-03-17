@@ -1,0 +1,1 @@
+Add one short comment line to the README stating it was updated by the WhatsApp coding agent, then provide a summary of the change.

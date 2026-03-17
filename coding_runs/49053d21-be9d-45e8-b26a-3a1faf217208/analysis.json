@@ -1,0 +1,10 @@
+{
+  "summary": "The repo has a single likely web-scraping code file: `scrape_images.py`. To safely delete it and clean up any obvious references, I only need to inspect that file and `README.md`.",
+  "files_to_read": [
+    "scrape_images.py",
+    "README.md"
+  ],
+  "test_commands": [],
+  "needs_clarification": false,
+  "clarification_question": null
+}

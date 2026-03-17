@@ -1,0 +1,13 @@
+{
+  "summary": "Updated README.md to add 'hello world' as requested.",
+  "files_to_write": [
+    {
+      "path": "README.md",
+      "content": "# Product Repo\n\n<!-- Updated by the WhatsApp coding agent -->\n\nThis repository contains the product codebase.\n\nhello world\n\n## Getting Started\n\nAdd project-specific setup, development, and usage instructions here.\n"
+    }
+  ],
+  "test_commands": [],
+  "notes": [
+    "No tests are necessary for this documentation-only change."
+  ]
+}

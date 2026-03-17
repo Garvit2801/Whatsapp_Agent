@@ -1,0 +1,1 @@
+Delete the previously created web scraping code file.

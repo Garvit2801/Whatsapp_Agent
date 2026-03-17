@@ -1,0 +1,1 @@
+Create a README in the product repo if missing, add a short comment line stating it was updated by the WhatsApp coding agent, and send a summary of what changed.

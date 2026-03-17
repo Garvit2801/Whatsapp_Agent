@@ -1,0 +1,1 @@
+Recreate the recently deleted image web scraping file.

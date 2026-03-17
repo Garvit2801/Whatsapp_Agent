@@ -1,0 +1,12 @@
+{
+  "summary": "Removed the previously created web scraping script from the repository. No other files referenced it, so no additional cleanup was needed.",
+  "files_to_write": [],
+  "files_to_delete": [
+    "scrape_images.py"
+  ],
+  "test_commands": [],
+  "notes": [
+    "README.md does not reference the deleted script, so it was left unchanged.",
+    "No safe build or test commands were necessary for this deletion-only refactor."
+  ]
+}

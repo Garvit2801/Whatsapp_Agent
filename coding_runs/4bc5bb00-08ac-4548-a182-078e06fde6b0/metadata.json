@@ -1,0 +1,54 @@
+{
+  "repo_name": "product",
+  "branch_name": "agent/feature/write-a-python-code-file-for-web-scraping",
+  "goal": "Write a Python code file for web scraping images.",
+  "job_type": "feature",
+  "loaded_files": [
+    "README.md"
+  ],
+  "written_files": [
+    "scrape_images.py"
+  ],
+  "analysis": {
+    "summary": "Add a new standalone Python script to scrape image URLs from a web page, download them to a local folder, and include basic CLI usage/help plus error handling. Read the README first in case it specifies naming, structure, or usage conventions; no other existing files are present.",
+    "files_to_read": [
+      "README.md"
+    ],
+    "test_commands": [
+      "python3 -m py_compile scrape_images.py",
+      "python3 scrape_images.py --help"
+    ],
+    "needs_clarification": false,
+    "clarification_question": null
+  },
+  "implementation": {
+    "summary": "Added a standalone Python script to scrape image URLs from a web page and download them locally with basic error handling and CLI usage help.",
+    "files_to_write": [
+      {
+        "path": "scrape_images.py",
+        "content": "#!/usr/bin/env python3\n\"\"\"Scrape image URLs from a web page and download them locally.\n\nUsage examples:\n  python3 scrape_images.py https://example.com\n  python3 scrape_images.py https://example.com/gallery --output-dir downloads\n  python3 scrape_images.py https://example.com --limit 10 --timeout 15\n\"\"\"\n\nfrom __future__ import annotations\n\nimport argparse\nimport mimetypes\nimport os\nimport sys\nfrom html.parser import HTMLParser\nfrom pathlib import Path\nfrom typing import List, Set\nfrom urllib.error import HTTPError, URLError\nfrom urllib.parse import urljoin, urlparse\nfrom urllib.request import Request, urlopen\n\n\nUSER_AGENT = \"Mozilla/5.0 (compatible; ImageScraper/1.0)\"\n\n\nclass ImageParser(HTMLParser):\n    def __init__(self) -> None:\n        super().__init__()\n        self.image_urls: List[str] = []\n\n    def handle_starttag(self, tag: str, attrs) -> None:\n        if tag.lower() != \"img\":\n            return\n\n        attr_map = dict(attrs)\n        src = attr_map.get(\"src\")\n        if src:\n            self.image_urls.append(src)\n\n\ndef fetch_text(url: str, timeout: int) -> str:\n    request = Request(url, headers={\"User-Agent\": USER_AGENT})\n    with urlopen(request, timeout=timeout) as response:\n        content_type = response.headers.get(\"Content-Type\", \"\")\n        charset = response.headers.get_content_charset() or \"utf-8\"\n        if \"text/html\" not in content_type:\n            raise ValueError(f\"URL does not appear to be an HTML page: {content_type or 'unknown content type'}\")\n        return response.read().decode(charset, errors=\"replace\")\n\n\ndef extract_image_urls(page_url: str, html: str) -> List[str]:\n    parser = ImageParser()\n    parser.feed(html)\n\n    resolved_urls: List[str] = []\n    seen: Set[str] = set()\n\n    for raw_url in parser.image_urls:\n        raw_url = raw_url.strip()\n        if not raw_url or raw_url.startswith(\"data:\"):\n            continue\n\n        full_url = urljoin(page_url, raw_url)\n        if full_url not in seen:\n            seen.add(full_url)\n            resolved_urls.append(full_url)\n\n    return resolved_urls\n\n\ndef sanitize_filename(name: str) -> str:\n    safe = \"\".join(c if c.isalnum() or c in \".-_\" else \"_\" for c in name)\n    return safe.strip(\"._\") or \"image\"\n\n\ndef guess_extension(url: str, content_type: str) -> str:\n    path = urlparse(url).path\n    suffix = Path(path).suffix\n    if suffix:\n        return suffix\n\n    guessed = mimetypes.guess_extension((content_type or \"\").split(\";\")[0].strip())\n    return guessed or \".img\"\n\n\ndef build_filename(image_url: str, output_dir: Path, index: int, content_type: str) -> Path:\n    parsed = urlparse(image_url)\n    base_name = os.path.basename(parsed.path) or f\"image_{index}\"\n    base_name = sanitize_filename(base_name)\n\n    stem = Path(base_name).stem or f\"image_{index}\"\n    suffix = Path(base_name).suffix or guess_extension(image_url, content_type)\n\n    candidate = output_dir / f\"{stem}{suffix}\"\n    counter = 1\n    while candidate.exists():\n        candidate = output_dir / f\"{stem}_{counter}{suffix}\"\n        counter += 1\n    return candidate\n\n\ndef download_image(image_url: str, output_dir: Path, timeout: int, index: int) -> Path:\n    request = Request(image_url, headers={\"User-Agent\": USER_AGENT})\n    with urlopen(request, timeout=timeout) as response:\n        content_type = response.headers.get(\"Content-Type\", \"\")\n        output_path = build_filename(image_url, output_dir, index, content_type)\n        data = response.read()\n        output_path.write_bytes(data)\n        return output_path\n\n\ndef scrape_images(page_url: str, output_dir: Path, timeout: int, limit: int | None) -> int:\n    html = fetch_text(page_url, timeout=timeout)\n    image_urls = extract_image_urls(page_url, html)\n\n    if limit is not None:\n        image_urls = image_urls[:limit]\n\n    if not image_urls:\n        print(\"No images found.\")\n        return 0\n\n    output_dir.mkdir(parents=True, exist_ok=True)\n\n    downloaded = 0\n    for index, image_url in enumerate(image_urls, start=1):\n        try:\n            output_path = download_image(image_url, output_dir, timeout, index)\n            downloaded += 1\n            print(f\"[{downloaded}/{len(image_urls)}] Downloaded {image_url} -> {output_path}\")\n        except (HTTPError, URLError, OSError, ValueError) as exc:\n            print(f\"Skipped {image_url}: {exc}\", file=sys.stderr)\n\n    return downloaded\n\n\ndef parse_args() -> argparse.Namespace:\n    parser = argparse.ArgumentParser(\n        description=\"Scrape image URLs from a web page and download them.\"\n    )\n    parser.add_argument(\"url\", help=\"Web page URL to scan for images\")\n    parser.add_argument(\n        \"--output-dir\",\n        default=\"downloaded_images\",\n        help=\"Directory where downloaded images will be saved (default: downloaded_images)\",\n    )\n    parser.add_argument(\n        \"--timeout\",\n        type=int,\n        default=10,\n        help=\"Network timeout in seconds (default: 10)\",\n    )\n    parser.add_argument(\n        \"--limit\",\n        type=int,\n        default=None,\n        help=\"Maximum number of images to download\",\n    )\n    return parser.parse_args()\n\n\ndef main() -> int:\n    args = parse_args()\n    output_dir = Path(args.output_dir)\n\n    try:\n        downloaded = scrape_images(\n            page_url=args.url,\n            output_dir=output_dir,\n            timeout=args.timeout,\n            limit=args.limit,\n        )\n    except (HTTPError, URLError, OSError, ValueError) as exc:\n        print(f\"Error: {exc}\", file=sys.stderr)\n        return 1\n\n    print(f\"Finished. Downloaded {downloaded} image(s) to {output_dir}\")\n    return 0\n\n\nif __name__ == \"__main__\":\n    raise SystemExit(main())\n"
+      }
+    ],
+    "test_commands": [
+      "python3 -m py_compile scrape_images.py",
+      "python3 scrape_images.py --help"
+    ],
+    "notes": [
+      "The implementation uses only Python standard library modules, so it does not require adding dependencies.",
+      "The scraper currently extracts image URLs from <img src=\"...\"> tags on a single page and skips inline data URLs."
+    ]
+  },
+  "command_results": [
+    {
+      "success": false,
+      "command": "python3 -m py_compile scrape_images.py",
+      "message": "Command not in allowed test/build allowlist."
+    },
+    {
+      "success": false,
+      "command": "python3 scrape_images.py --help",
+      "message": "Command not in allowed test/build allowlist."
+    }
+  ],
+  "changed_files": []
+}

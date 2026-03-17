@@ -1,0 +1,18 @@
+$ python3 image_web_scraper.py --help
+usage: image_web_scraper.py [-h] [-o OUTPUT_DIR] [--limit LIMIT] [--list-only]
+                            [--manifest]
+                            url
+
+Scrape image URLs from a web page.
+
+positional arguments:
+  url                   Page URL to scrape
+
+options:
+  -h, --help            show this help message and exit
+  -o, --output-dir OUTPUT_DIR
+                        Directory for downloaded images or manifest output
+  --limit LIMIT         Maximum number of image URLs to return/download
+  --list-only           Print image URLs without downloading files
+  --manifest            Write scraped image URLs to images.json in the output
+                        directory

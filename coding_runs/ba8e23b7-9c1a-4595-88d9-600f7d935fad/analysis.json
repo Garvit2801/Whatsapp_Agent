@@ -1,0 +1,9 @@
+{
+  "summary": "Read the README first, then use git history to identify the recently deleted image scraping file and restore it based on its last committed contents. No clarification is needed because the deleted file can be determined from version history rather than the current tree.",
+  "files_to_read": [
+    "README.md"
+  ],
+  "test_commands": [],
+  "needs_clarification": false,
+  "clarification_question": null
+}

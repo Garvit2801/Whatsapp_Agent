@@ -1,0 +1,9 @@
+{
+  "summary": "The repo tree currently only exposes README.md, so the minimum safe starting point is to read that file. However, recreating a recently deleted image web-scraping file is not safely actionable from the tree alone because the deleted file\u2019s original path, language, interface, and integration points are not visible. I would first read README.md, then use either git history or your guidance to identify the deleted scraper file before editing.",
+  "files_to_read": [
+    "README.md"
+  ],
+  "test_commands": [],
+  "needs_clarification": true,
+  "clarification_question": "I only see README.md in the repo. Do you have the deleted file\u2019s original path/name or access to git history/previous commits so I can recreate the correct scraper and add validations safely?"
+}

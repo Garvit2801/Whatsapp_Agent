@@ -1,0 +1,13 @@
+{
+  "summary": "Confirmed the web scraping code is contained in the repository root file `image_web_scraper.py` and removed that file. No other files required changes because there are no remaining references or imports in the provided repository contents.",
+  "files_to_write": [],
+  "files_to_delete": [
+    "image_web_scraper.py"
+  ],
+  "test_commands": [],
+  "notes": [
+    "Confirmed exact target path from the repo tree: `image_web_scraper.py`.",
+    "`README.md` does not reference the scraper, so no documentation cleanup was necessary.",
+    "No test/build commands were provided because the repository contents shown do not include a test suite or build configuration."
+  ]
+}

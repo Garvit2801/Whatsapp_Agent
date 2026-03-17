@@ -1,0 +1,12 @@
+{
+  "summary": "Add a new standalone Python script to scrape image URLs from a web page, download them to a local folder, and include basic CLI usage/help plus error handling. Read the README first in case it specifies naming, structure, or usage conventions; no other existing files are present.",
+  "files_to_read": [
+    "README.md"
+  ],
+  "test_commands": [
+    "python3 -m py_compile scrape_images.py",
+    "python3 scrape_images.py --help"
+  ],
+  "needs_clarification": false,
+  "clarification_question": null
+}

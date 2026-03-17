@@ -1,0 +1,1 @@
+Delete the web scraping code file from the repository after confirming the exact file/path.
