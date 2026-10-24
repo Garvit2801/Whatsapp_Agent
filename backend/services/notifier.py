@@ -1,5 +1,8 @@
+from pathlib import Path
+
 from twilio.rest import Client
 
+from backend.services.app_messages import is_app_recipient, add_message
 from shared.config import (
     TWILIO_ACCOUNT_SID,
     TWILIO_AUTH_TOKEN,
@@ -10,6 +13,9 @@ def _get_client() -> Client:
     return Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 def send_whatsapp_text(to_number: str, body: str):
+    if is_app_recipient(to_number):
+        return add_message(to_number, "agent", body)
+
     client = _get_client()
     return client.messages.create(
         from_=TWILIO_WHATSAPP_FROM,
@@ -18,6 +24,9 @@ def send_whatsapp_text(to_number: str, body: str):
     )
 
 def send_whatsapp_media(to_number: str, body: str, media_url: str):
+    if is_app_recipient(to_number):
+        return add_message(to_number, "agent", body, media_url=media_url)
+
     client = _get_client()
     return client.messages.create(
         from_=TWILIO_WHATSAPP_FROM,
@@ -90,6 +99,10 @@ def send_task_completed(to_number: str, task: dict, result: dict):
 
     if artifact_url:
         return send_whatsapp_media(to_number, body, artifact_url)
+
+    # The app is served by this backend, so artifacts work without a public URL.
+    if artifact_path and is_app_recipient(to_number) and Path(artifact_path).exists():
+        return send_whatsapp_media(to_number, body, f"/artifacts/{Path(artifact_path).name}")
 
     if artifact_path:
         body += f"\nArtifact: {artifact_path}"

@@ -27,6 +27,10 @@ ALLOWED_WHATSAPP_NUMBERS = {
     if x.strip()
 }
 
+# Private app channel (installable PWA, replaces Twilio for personal use)
+APP_ACCESS_TOKEN = os.getenv("APP_ACCESS_TOKEN", "").strip()
+APP_MESSAGES_FILE = str(BASE_DIR / os.getenv("APP_MESSAGES_FILE", "app_messages.jsonl"))
+
 AGENT_CONTROL_FILE = str(BASE_DIR / os.getenv("AGENT_CONTROL_FILE", "agent_control.json"))
 
 WOL_TARGET_MAC = os.getenv("WOL_TARGET_MAC", "").strip()

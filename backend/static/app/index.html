@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>PC Agent</title>
+  <meta name="theme-color" content="#0f766e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PC Agent">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <style>
+    :root {
+      --bg: #f4f5f7;
+      --surface: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #0f766e;
+      --accent-text: #ffffff;
+      --bubble-user: #0f766e;
+      --bubble-user-text: #ffffff;
+      --bubble-agent: #ffffff;
+      --danger: #b91c1c;
+      --ok: #15803d;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0b0f14;
+        --surface: #151b23;
+        --text: #e5e7eb;
+        --muted: #9ca3af;
+        --border: #263040;
+        --accent: #14b8a6;
+        --accent-text: #04201d;
+        --bubble-user: #0f766e;
+        --bubble-user-text: #ecfeff;
+        --bubble-agent: #151b23;
+        --danger: #f87171;
+        --ok: #4ade80;
+      }
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      display: flex; align-items: center; gap: 10px;
+      padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    header h1 { font-size: 17px; margin: 0; flex: 1; }
+    .pill {
+      font-size: 12px; padding: 3px 10px; border-radius: 999px;
+      border: 1px solid var(--border); color: var(--muted);
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+    .pill.online::before { background: var(--ok); }
+    .pill.offline::before { background: var(--danger); }
+    .icon-btn {
+      background: none; border: none; color: var(--muted); cursor: pointer;
+      font-size: 13px; padding: 4px 6px;
+    }
+    main {
+      flex: 1; overflow-y: auto; padding: 16px;
+      display: flex; flex-direction: column; gap: 8px;
+      max-width: 820px; width: 100%; margin: 0 auto;
+    }
+    .msg {
+      max-width: 85%; padding: 8px 12px; border-radius: 14px;
+      white-space: pre-wrap; word-wrap: break-word; overflow-wrap: anywhere;
+    }
+    .msg.user { align-self: flex-end; background: var(--bubble-user); color: var(--bubble-user-text); border-bottom-right-radius: 4px; }
+    .msg.agent { align-self: flex-start; background: var(--bubble-agent); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+    .msg time { display: block; font-size: 11px; opacity: .65; margin-top: 4px; text-align: right; }
+    .msg img { display: block; max-width: 100%; border-radius: 8px; margin-top: 8px; }
+    .msg .actions { display: flex; gap: 8px; margin-top: 8px; }
+    .msg .actions button { flex: 1; }
+    .empty { margin: auto; text-align: center; color: var(--muted); max-width: 320px; }
+    .chips {
+      display: flex; gap: 8px; overflow-x: auto; padding: 8px 16px 0;
+      max-width: 820px; width: 100%; margin: 0 auto; scrollbar-width: none;
+    }
+    .chips::-webkit-scrollbar { display: none; }
+    .chip {
+      flex: none; border: 1px solid var(--border); background: var(--surface); color: var(--text);
+      border-radius: 999px; padding: 6px 12px; font-size: 13px; cursor: pointer;
+    }
+    footer {
+      padding: 8px 16px calc(10px + env(safe-area-inset-bottom));
+      max-width: 820px; width: 100%; margin: 0 auto;
+    }
+    form.composer { display: flex; gap: 8px; }
+    textarea {
+      flex: 1; resize: none; min-height: 44px; max-height: 140px;
+      padding: 11px 14px; border-radius: 22px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--text); font: inherit;
+    }
+    textarea:focus, input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+    button.primary {
+      border: none; border-radius: 22px; padding: 0 18px; min-height: 44px;
+      background: var(--accent); color: var(--accent-text); font-weight: 600; cursor: pointer;
+    }
+    button.secondary {
+      border: 1px solid var(--border); border-radius: 10px; padding: 6px 10px;
+      background: var(--surface); color: var(--text); cursor: pointer;
+    }
+    button:disabled { opacity: .5; cursor: default; }
+    #login {
+      margin: auto; padding: 24px 16px; width: 100%; max-width: 380px;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    #login h2 { margin: 0; }
+    #login p { margin: 0; color: var(--muted); }
+    #login input {
+      padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--text); font: inherit;
+    }
+    .error { color: var(--danger); font-size: 14px; min-height: 1em; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <section id="login" class="hidden">
+    <h2>PC Agent</h2>
+    <p>Enter the access token from <code>APP_ACCESS_TOKEN</code> in your server's <code>.env</code>.</p>
+    <input id="token-input" type="password" placeholder="Access token" autocomplete="current-password">
+    <button class="primary" id="login-btn">Connect</button>
+    <div class="error" id="login-error"></div>
+  </section>
+
+  <div id="chat" class="hidden" style="display:flex;flex-direction:column;flex:1;min-height:0">
+    <header>
+      <h1>PC Agent</h1>
+      <span class="pill" id="status-pill">checking…</span>
+      <button class="icon-btn" id="logout-btn" title="Forget token">Log out</button>
+    </header>
+    <main id="messages"></main>
+    <div class="chips" id="chips"></div>
+    <footer>
+      <form class="composer" id="composer">
+        <textarea id="input" rows="1" placeholder="Tell your PC what to do…"></textarea>
+        <button class="primary" type="submit" id="send-btn">Send</button>
+      </form>
+    </footer>
+  </div>
+
+  <script>
+    const TOKEN_KEY = "pc-agent-token";
+    const QUICK_ACTIONS = [
+      "PC status", "Latest task status", "Queue status", "APPROVALS",
+      "Take a screenshot", "Pause agent", "Resume agent", "Stop current task", "Wake PC",
+    ];
+
+    const $ = (id) => document.getElementById(id);
+    let token = null;
+    let cursor = 0;
+    let polling = null;
+    let statusTimer = null;
+
+    function storageGet(key) { try { return localStorage.getItem(key); } catch { return null; } }
+    function storageSet(key, value) { try { value === null ? localStorage.removeItem(key) : localStorage.setItem(key, value); } catch {} }
+
+    async function api(path, options = {}) {
+      const res = await fetch(path, {
+        ...options,
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}`, ...(options.headers || {}) },
+      });
+      if (res.status === 401) { logout("Token rejected. Please log in again."); throw new Error("unauthorized"); }
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.detail || `Request failed (${res.status})`);
+      }
+      return res.json();
+    }
+
+    function showLogin(message = "") {
+      $("chat").classList.add("hidden");
+      $("login").classList.remove("hidden");
+      $("login-error").textContent = message;
+      $("token-input").focus();
+    }
+
+    function showChat() {
+      $("login").classList.add("hidden");
+      $("chat").classList.remove("hidden");
+      $("input").focus();
+    }
+
+    function logout(message = "") {
+      token = null;
+      storageSet(TOKEN_KEY, null);
+      clearInterval(polling);
+      clearInterval(statusTimer);
+      polling = statusTimer = null;
+      cursor = 0;
+      $("messages").innerHTML = "";
+      showLogin(message);
+    }
+
+    async function login(candidate) {
+      token = candidate;
+      try {
+        await api("/api/app/status");
+      } catch (e) {
+        if (e.message !== "unauthorized") showLogin(e.message);
+        return;
+      }
+      storageSet(TOKEN_KEY, candidate);
+      showChat();
+      renderEmptyState();
+      await poll();
+      refreshStatus();
+      polling = setInterval(() => { poll(); }, 2500);
+      statusTimer = setInterval(refreshStatus, 15000);
+    }
+
+    function renderEmptyState() {
+      if ($("messages").children.length) return;
+      const div = document.createElement("div");
+      div.className = "empty";
+      div.id = "empty";
+      div.textContent = "Send a command like “take a screenshot” or “add a login page to product”. Replies from your PC show up here.";
+      $("messages").appendChild(div);
+    }
+
+    function isApprovalRequest(text) {
+      return /^Approval needed for approval #(\d+)/.exec(text);
+    }
+
+    function renderMessage(m) {
+      $("empty")?.remove();
+      const div = document.createElement("div");
+      div.className = `msg ${m.sender === "user" ? "user" : "agent"}`;
+      div.textContent = m.text;
+
+      if (m.media_url) {
+        const link = document.createElement("a");
+        link.href = m.media_url;
+        link.target = "_blank";
+        link.rel = "noopener";
+        if (/\.(png|jpe?g|gif|webp)$/i.test(m.media_url)) {
+          const img = document.createElement("img");
+          img.src = m.media_url;
+          img.alt = "Task artifact";
+          img.loading = "lazy";
+          link.appendChild(img);
+        } else {
+          link.textContent = "Open artifact";
+        }
+        div.appendChild(link);
+      }
+
+      const approval = m.sender !== "user" && isApprovalRequest(m.text);
+      if (approval) {
+        const serial = approval[1];
+        const actions = document.createElement("div");
+        actions.className = "actions";
+        for (const [label, cmd] of [["Approve", `YES ${serial}`], ["Reject", `NO ${serial}`]]) {
+          const b = document.createElement("button");
+          b.className = "secondary";
+          b.textContent = label;
+          b.onclick = () => { actions.querySelectorAll("button").forEach((x) => (x.disabled = true)); send(cmd); };
+          actions.appendChild(b);
+        }
+        div.appendChild(actions);
+      }
+
+      const time = document.createElement("time");
+      time.textContent = new Date(m.created_at).toLocaleString([], { hour: "2-digit", minute: "2-digit", day: "numeric", month: "short" });
+      div.appendChild(time);
+      $("messages").appendChild(div);
+    }
+
+    let pollInFlight = null;
+    let pollAgain = false;
+
+    // Serialize polls so overlapping requests never render the same messages twice.
+    function poll() {
+      if (pollInFlight) { pollAgain = true; return pollInFlight; }
+      pollInFlight = fetchNewMessages().finally(() => {
+        pollInFlight = null;
+        if (pollAgain) { pollAgain = false; poll(); }
+      });
+      return pollInFlight;
+    }
+
+    async function fetchNewMessages() {
+      try {
+        const data = await api(`/api/app/messages?after=${cursor}`);
+        const main = $("messages");
+        const stickToBottom = cursor === 0 || main.scrollHeight - main.scrollTop - main.clientHeight < 80;
+        data.messages.forEach(renderMessage);
+        cursor = data.next;
+        if (data.messages.length && stickToBottom) main.scrollTop = main.scrollHeight;
+      } catch {}
+    }
+
+    async function refreshStatus() {
+      const pill = $("status-pill");
+      try {
+        const s = await api("/api/app/status");
+        pill.className = `pill ${s.online ? "online" : "offline"}`;
+        pill.textContent = s.agent_paused ? "paused" : s.online ? s.state || "online" : "PC offline";
+      } catch {
+        pill.className = "pill offline";
+        pill.textContent = "server unreachable";
+      }
+    }
+
+    async function send(text) {
+      text = text.trim();
+      if (!text) return;
+      $("send-btn").disabled = true;
+      try {
+        // Command handling (including the AI planner) runs before this returns, so poll right after.
+        const pending = api("/api/app/messages", { method: "POST", body: JSON.stringify({ text }) });
+        setTimeout(poll, 300);
+        await pending;
+      } catch (e) {
+        if (e.message !== "unauthorized") alert(`Could not send: ${e.message}`);
+      } finally {
+        $("send-btn").disabled = false;
+        poll();
+      }
+    }
+
+    $("composer").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const text = $("input").value;
+      $("input").value = "";
+      $("input").style.height = "";
+      send(text);
+    });
+    $("input").addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); $("composer").requestSubmit(); }
+    });
+    $("input").addEventListener("input", (e) => {
+      e.target.style.height = "";
+      e.target.style.height = `${Math.min(e.target.scrollHeight, 140)}px`;
+    });
+    $("login-btn").onclick = () => login($("token-input").value.trim());
+    $("token-input").addEventListener("keydown", (e) => { if (e.key === "Enter") $("login-btn").click(); });
+    $("logout-btn").onclick = () => logout();
+
+    for (const label of QUICK_ACTIONS) {
+      const chip = document.createElement("button");
+      chip.className = "chip";
+      chip.type = "button";
+      chip.textContent = label === "APPROVALS" ? "Pending approvals" : label;
+      chip.onclick = () => send(label);
+      $("chips").appendChild(chip);
+    }
+
+    document.addEventListener("visibilitychange", () => { if (!document.hidden && token) { poll(); refreshStatus(); } });
+
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+
+    // Opening /app/#token=... once logs a device in (the fragment never reaches the server).
+    const linkToken = new URLSearchParams(location.hash.slice(1)).get("token");
+    if (linkToken) history.replaceState(null, "", location.pathname);
+
+    const saved = linkToken || storageGet(TOKEN_KEY);
+    saved ? login(saved) : showLogin();
+  </script>
+</body>
+</html>

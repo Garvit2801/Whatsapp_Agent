@@ -1,1 +1,5 @@
 .env
+app_messages.jsonl
+__pycache__/
+*.pyc
+.DS_Store
