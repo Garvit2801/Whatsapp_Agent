@@ -248,7 +248,7 @@
         link.href = m.media_url;
         link.target = "_blank";
         link.rel = "noopener";
-        if (/\.(png|jpe?g|gif|webp)$/i.test(m.media_url)) {
+        if (/\.(png|jpe?g|gif|webp)$/i.test(new URL(m.media_url, location.href).pathname)) {
           const img = document.createElement("img");
           img.src = m.media_url;
           img.alt = "Task artifact";
