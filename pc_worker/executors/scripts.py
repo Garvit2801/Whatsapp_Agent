@@ -1,4 +1,5 @@
 import subprocess
+import sys
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
@@ -19,7 +20,7 @@ def run_named_script(script_name: str) -> dict:
 
     try:
         result = subprocess.run(
-            ["python", str(script_path)],
+            [sys.executable, str(script_path)],
             capture_output=True,
             text=True,
             timeout=300,

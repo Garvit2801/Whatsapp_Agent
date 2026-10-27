@@ -10,8 +10,25 @@ from shared.config import (
     TWILIO_WHATSAPP_FROM,
 )
 
+# Twilio rejects WhatsApp bodies over 1600 characters.
+MAX_BODY_CHARS = 1500
+
 def _get_client() -> Client:
     return Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+
+def _append_output(body: str, label: str, output: str | None) -> str:
+    output = (output or "").strip()
+    if not output:
+        return body
+
+    header = f"\n\n{label}:\n"
+    room = MAX_BODY_CHARS - len(body) - len(header)
+    if room <= 0:
+        return body
+    if len(output) > room:
+        # Keep the end of the output, where results and errors usually are.
+        output = "..." + output[-(room - 3):]
+    return body + header + output
 
 def send_whatsapp_text(to_number: str, body: str):
     if is_app_recipient(to_number):
@@ -90,6 +107,7 @@ def send_task_completed(to_number: str, task: dict, result: dict):
         f"Tool: {task['tool_name']}\n"
         f"Message: {result.get('message', 'Done')}"
     )
+    body = _append_output(body, "Output", result.get("stdout"))
 
     artifact_url = result.get("artifact_url")
     artifact_path = result.get("artifact_path")
@@ -118,9 +136,12 @@ def send_task_failed(to_number: str, task: dict, error_message: str):
         f"Tool: {task['tool_name']}\n"
         f"Error: {error_message}"
     )
-    validation_pdf = (task.get("result") or {}).get("validation_report_pdf")
+    result = task.get("result") or {}
+    validation_pdf = result.get("validation_report_pdf")
     if validation_pdf:
         body += f"\nValidation report PDF: {validation_pdf}"
+    body = _append_output(body, "Output", result.get("stdout"))
+    body = _append_output(body, "Errors", result.get("stderr"))
     return send_whatsapp_text(to_number, body)
 
 def send_task_approved(to_number: str, task_id: str):
