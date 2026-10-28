@@ -5,19 +5,15 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-from openai import OpenAI
-
 from shared.config import (
-    OPENAI_API_KEY,
     CODE_AGENT_MODEL,
     CODING_WORKSPACE_ROOT,
     CODING_RUNS_ROOT,
     CODE_AGENT_MAX_FILES,
     CODE_AGENT_MAX_FILE_BYTES,
 )
+from shared.llm import structured_completion
 from pc_worker.utils.pdf_reports import generate_validation_report_pdf
-
-client = OpenAI(api_key=OPENAI_API_KEY)
 
 EXCLUDED_DIRS = {
     ".git",
@@ -138,21 +134,7 @@ def _delete_file(repo_path: Path, rel_path: str) -> None:
         target.unlink()
 
 def _call_structured(name: str, schema: dict[str, Any], instructions: str, input_text: str) -> dict[str, Any]:
-    response = client.responses.create(
-        model=CODE_AGENT_MODEL,
-        reasoning={"effort": "medium"},
-        instructions=instructions,
-        input=input_text,
-        text={
-            "format": {
-                "type": "json_schema",
-                "name": name,
-                "strict": True,
-                "schema": schema,
-            }
-        },
-    )
-    return json.loads(response.output_text)
+    return structured_completion(CODE_AGENT_MODEL, name, schema, instructions, input_text)
 
 def _is_allowed_repo_command(command: str) -> bool:
     cmd = command.strip()
@@ -252,12 +234,6 @@ def _implementation_schema() -> dict[str, Any]:
     }
 
 def run_openai_code_job(task_id: str, code_job: dict) -> dict:
-    if not OPENAI_API_KEY:
-        return {
-            "success": False,
-            "message": "OPENAI_API_KEY is not configured.",
-        }
-
     repo_name = code_job["repo_name"]
     goal = code_job["goal"]
     branch_name = code_job["branch_name"]
@@ -448,7 +424,7 @@ Recommend only safe test/build commands.
 
     return {
         "success": True,
-        "message": "OpenAI code job completed successfully.",
+        "message": "Code job completed successfully.",
         "summary": implementation["summary"],
         "artifact_path": str(run_dir),
         "validation_report_pdf": validation_report_pdf,

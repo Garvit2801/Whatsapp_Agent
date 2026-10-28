@@ -6,7 +6,10 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+# LLM server (OpenAI-compatible). Defaults to a local Ollama.
+LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://localhost:11434/v1")
+LLM_API_KEY = os.getenv("LLM_API_KEY", "ollama")
+PLANNER_MODEL = os.getenv("PLANNER_MODEL", "qwen3:4b-instruct-2507-q4_K_M")
 
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID", "")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "")
@@ -43,6 +46,6 @@ CODING_RUNS_ROOT = str(BASE_DIR / os.getenv("CODING_RUNS_ROOT", "coding_runs"))
 DEFAULT_REPO_NAME = os.getenv("DEFAULT_REPO_NAME", "product")
 DEFAULT_CODE_RUNNER = os.getenv("DEFAULT_CODE_RUNNER", "openai_local")
 
-CODE_AGENT_MODEL = os.getenv("CODE_AGENT_MODEL", "gpt-5.4")
+CODE_AGENT_MODEL = os.getenv("CODE_AGENT_MODEL", "qwen3:4b-instruct-2507-q4_K_M")
 CODE_AGENT_MAX_FILES = int(os.getenv("CODE_AGENT_MAX_FILES", "8"))
 CODE_AGENT_MAX_FILE_BYTES = int(os.getenv("CODE_AGENT_MAX_FILE_BYTES", "40000"))
