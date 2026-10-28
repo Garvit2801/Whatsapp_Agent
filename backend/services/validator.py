@@ -13,6 +13,8 @@ ALLOWED_CONTROL_COMMANDS = {
     "wake_pc",
 }
 ALLOWED_CODE_RUNNERS = {"openai_local"}
+# Always ask first, even if the planner model forgets to flag it.
+SCRIPTS_REQUIRING_APPROVAL = {"cleanup_downloads"}
 
 def validate_command(cmd: PlannerDecision) -> PlannerDecision:
     if cmd.decision_type == "control":
@@ -21,12 +23,18 @@ def validate_command(cmd: PlannerDecision) -> PlannerDecision:
         return cmd
 
     if cmd.decision_type == "task":
+        # Small local models often name the right script but pick the wrong tool.
+        if cmd.script_name in ALLOWED_SCRIPTS:
+            cmd.tool_name = "run_named_script"
+
         if not cmd.tool_name:
             raise ValueError("Task decision missing tool_name")
 
         if cmd.tool_name == "run_named_script":
             if not cmd.script_name or cmd.script_name not in ALLOWED_SCRIPTS:
                 raise ValueError(f"Script not allowed: {cmd.script_name}")
+            if cmd.script_name in SCRIPTS_REQUIRING_APPROVAL:
+                cmd.requires_approval = True
 
         if cmd.tool_name == "list_files_in_folder":
             if not cmd.folder_path or cmd.folder_path not in ALLOWED_FOLDERS:
