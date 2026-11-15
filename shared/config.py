@@ -10,6 +10,8 @@ BASE_DIR = Path(__file__).resolve().parents[1]
 LLM_BASE_URL = os.getenv("LLM_BASE_URL", "http://localhost:11434/v1")
 LLM_API_KEY = os.getenv("LLM_API_KEY", "ollama")
 PLANNER_MODEL = os.getenv("PLANNER_MODEL", "qwen3:4b-instruct-2507-q4_K_M")
+# How long Ollama keeps the model in RAM after a request. Empty for non-Ollama servers.
+LLM_KEEP_ALIVE = os.getenv("LLM_KEEP_ALIVE", "1m").strip()
 
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID", "")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN", "")

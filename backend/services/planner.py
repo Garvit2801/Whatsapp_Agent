@@ -1,5 +1,6 @@
 from shared.config import PLANNER_MODEL, DEFAULT_REPO_NAME, DEFAULT_CODE_RUNNER
 from shared.llm import structured_completion
+from backend.services.quick_commands import match_quick_command
 from shared.tool_contracts import PlannerDecision
 
 SYSTEM_PROMPT = f"""
@@ -54,6 +55,10 @@ Known folder keys:
 """
 
 def plan_command(user_text: str) -> PlannerDecision:
+    quick = match_quick_command(user_text)
+    if quick:
+        return quick
+
     data = structured_completion(
         model=PLANNER_MODEL,
         name="planner_decision",
